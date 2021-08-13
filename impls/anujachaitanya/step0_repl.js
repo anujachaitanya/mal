@@ -6,10 +6,10 @@ const reader = readline.createInterface({
 });
 
 const READ = (str) => str;
-const EVAL = (str, env) => str;
+const EVAL = (str) => str;
 const PRINT = (str) => str;
 
-const repl = (str) => PRINT(EVAL(READ(str), {}));
+const repl = (str) => PRINT(EVAL(READ(str)));
 
 const loop = function () {
   reader.question("user> ", (str) => {
