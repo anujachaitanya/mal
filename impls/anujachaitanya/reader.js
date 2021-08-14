@@ -1,4 +1,4 @@
-const { List, Vector, Str } = require("./types");
+const { List, Vector, Str, HashMap, Symbol } = require("./types");
 class Reader {
   constructor(tokens) {
     this.tokens = tokens.slice();
@@ -47,7 +47,7 @@ const read_atom = (reader) => {
     if (!/[^\\]"$/.test(token)) throw new Error("unbalanced");
     return new Str(token.substring(1, token.length - 1));
   }
-  return token;
+  return new Symbol(token);
 };
 
 const read_seq = (reader, closingPar) => {
@@ -71,21 +71,31 @@ const read_list = (reader) => {
   return new List(ast);
 };
 
+const read_hashmap = (reader) => {
+  const hashmap = read_seq(reader, "}");
+  if (hashmap.length % 2 !== 0) {
+    throw new Error("odd number of values in hashmap");
+  }
+  return new HashMap(hashmap);
+};
+
 const read_form = (reader) => {
   const token = reader.peek();
   switch (token[0]) {
     case "(":
       reader.next();
       return read_list(reader);
-
     case "[":
       reader.next();
       return read_vector(reader);
-
+    case "{":
+      reader.next();
+      return read_hashmap(reader);
     case ")":
       throw new Error("unbalanced");
-
     case "]":
+      throw new Error("unbalanced");
+    case "}":
       throw new Error("unbalanced");
   }
   return read_atom(reader);
