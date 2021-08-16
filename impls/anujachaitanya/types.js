@@ -10,11 +10,23 @@ class List {
   toString() {
     return "(" + this.ast.map((x) => x.toString()).join(" ") + ")";
   }
+
+  count() {
+    return this.ast.length;
+  }
 }
 
 class Vector {
   constructor(ast) {
     this.ast = ast;
+  }
+
+  isEmpty() {
+    return this.ast.length === 0;
+  }
+
+  count() {
+    return this.ast.length;
   }
 
   toString() {
@@ -30,6 +42,10 @@ class HashMap {
     }
   }
 
+  count() {
+    return this.data.entries().length;
+  }
+
   toString() {
     const list = [];
     for ([k, v] of this.data.entries()) {
@@ -42,6 +58,10 @@ class HashMap {
 class Str {
   constructor(string) {
     this.string = string;
+  }
+
+  count() {
+    return this.string.length;
   }
 
   toString() {
@@ -63,6 +83,10 @@ class Nil {
   toString() {
     return "nil";
   }
+
+  count() {
+    return 0;
+  }
 }
 
 class Keyword {
@@ -75,4 +99,18 @@ class Keyword {
   }
 }
 
-module.exports = { List, Vector, Str, Symbol, HashMap, Keyword, Nil };
+class Fn {
+  constructor(fn) {
+    this.fn = fn;
+  }
+
+  call(args) {
+    return this.fn.call(null, args);
+  }
+
+  toString() {
+    return "#<function>";
+  }
+}
+
+module.exports = { List, Vector, Str, Symbol, HashMap, Keyword, Nil, Fn };
