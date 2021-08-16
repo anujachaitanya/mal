@@ -1,4 +1,5 @@
-const { List, Vector, Str, HashMap, Symbol } = require("./types");
+const { List, Vector, Str, Symbol, HashMap, Keyword, Nil } = require("./types");
+
 class Reader {
   constructor(tokens) {
     this.tokens = tokens.slice();
@@ -11,17 +12,17 @@ class Reader {
 
   next() {
     const currToken = this.peek();
-    if (currToken) this.position++;
-    return currToken;
+    this.position += 1;
+    if (currToken) return currToken;
   }
 }
 
 const tokenize = (string) => {
   const tokens = [];
-  const reg =
+  const re =
     /[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)/g;
-  while ((token = reg.exec(string)[1])) {
-    if (token) {
+  while ((token = re.exec(string)[1]) !== "") {
+    if (token[0] !== ";") {
       tokens.push(token);
     }
   }
@@ -42,18 +43,19 @@ const read_atom = (reader) => {
   if (token === "false") {
     return false;
   }
-
-  if (token.startsWith('"')) {
+  if (token === "nil") {
+    return new Nil();
+  }
+  if (token[0] === '"') {
     if (!/[^\\]"$/.test(token)) throw new Error("unbalanced");
     return new Str(token.substring(1, token.length - 1));
   }
   return new Symbol(token);
 };
 
-const read_seq = (reader, closingPar) => {
+const read_seq = (reader, closingChar) => {
   const ast = [];
-  let token;
-  while ((token = reader.peek()) !== closingPar) {
+  while ((token = reader.peek()) !== closingChar) {
     if (!token) throw new Error("unbalanced");
     ast.push(read_form(reader));
     reader.next();
@@ -72,11 +74,11 @@ const read_list = (reader) => {
 };
 
 const read_hashmap = (reader) => {
-  const hashmap = read_seq(reader, "}");
-  if (hashmap.length % 2 !== 0) {
+  const ast = read_seq(reader, "}");
+  if (ast.length % 2 !== 0) {
     throw new Error("odd number of values in hashmap");
   }
-  return new HashMap(hashmap);
+  return new HashMap(ast);
 };
 
 const read_form = (reader) => {
@@ -91,6 +93,8 @@ const read_form = (reader) => {
     case "{":
       reader.next();
       return read_hashmap(reader);
+    case ":":
+      return new Keyword(token.slice(1));
     case ")":
       throw new Error("unbalanced");
     case "]":
